@@ -1,4 +1,9 @@
 import mongoose, {Schema} from 'mongoose'
+import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 const userSchema = new Schema({
     username : {
@@ -13,6 +18,10 @@ const userSchema = new Schema({
         type : String,
         required : true,
         unique:true
+    },
+    avatar : {
+        type : String,
+        required : true
     },
     fullname : {
         type : String,
@@ -48,5 +57,7 @@ userSchema.pre('save', function(next){
     }
     next()
 })
+
+
 
 export const User = mongoose.model("User", userSchema) 
