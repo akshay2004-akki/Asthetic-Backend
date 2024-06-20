@@ -13,11 +13,11 @@ const getAccessAndRefreshToken = async (userId)=>{
         throw new ApiError(404, "User does not exist")
     }
 
-    const refreshToken = user.getRefreshToken();
-    const accessToken  = user.getAccessToken();
+    const refreshToken = await user.getRefreshToken();
+    const accessToken  = await user.getAccessToken();
 
     user.refreshToken = refreshToken;
-    user.save({validateBeforeSave:false})
+    await user.save({validateBeforeSave:false})
 
     return {accessToken, refreshToken}
 }
@@ -93,7 +93,8 @@ const loginUser = asyncHandler(async(req,res)=>{
         throw new ApiError(409,"Password is not correct");
     }
 
-    const {accessToken,refreshToken} = getAccessAndRefreshToken(user._id)
+    const {accessToken,refreshToken} = await getAccessAndRefreshToken(user._id)
+    console.log(accessToken,refreshToken);
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
     const options = {
@@ -113,4 +114,30 @@ const loginUser = asyncHandler(async(req,res)=>{
 
 })
 
-export {registerUser, loginUser}
+const logOutUser = asyncHandler(async(req,res)=>{
+    const user = await User.findByIdAndUpdate(req.user?._id,{
+        $unset : {
+            refreshToken : 1
+        }
+    },
+    {
+        new : true
+    })
+
+    const options = {
+        httpOnly : true,
+        secure : false
+    }
+
+    return res
+    .status(202)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(
+        200,
+        {},
+        "User loggedout successfully"
+    ))
+
+})
+export {registerUser, loginUser, logOutUser}
