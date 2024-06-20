@@ -15,6 +15,11 @@ const getAccessAndRefreshToken = async (userId)=>{
 
     const refreshToken = user.getRefreshToken();
     const accessToken  = user.getAccessToken();
+
+    user.refreshToken = refreshToken;
+    user.save({validateBeforeSave:false})
+
+    return {accessToken, refreshToken}
 }
 
 const registerUser = asyncHandler(async(req,res)=>{
@@ -30,7 +35,7 @@ const registerUser = asyncHandler(async(req,res)=>{
     })
 
     if(existerUser){
-        throw new ApiError(404, "User Already exist");
+        throw new ApiError(404, "User Already exist with same email and username");
     }
     console.log("req.files : ", req.files);
 
@@ -68,4 +73,44 @@ const registerUser = asyncHandler(async(req,res)=>{
 
 })
 
-export {registerUser}
+const loginUser = asyncHandler(async(req,res)=>{
+    const {email, username, password} = req.body;
+
+    if(!email || !username || !password){
+        throw new ApiError("Fields are required");
+    }
+
+    const user = await User.findOne({
+        $or : [{username}, {email}]
+    });
+
+    if(!user){
+        throw new ApiError(404, "User does not exist")
+    }
+
+    const isPasswordCorrect = await user.isPasswordCorrect(password);
+    if(!isPasswordCorrect){
+        throw new ApiError(409,"Password is not correct");
+    }
+
+    const {accessToken,refreshToken} = getAccessAndRefreshToken(user._id)
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+    const options = {
+        httOnly : true,
+        secure : false
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken",accessToken,options)
+    .cookie("refreshToken",accessToken,options)
+    .json(new ApiResponse(
+        200,
+        {loggedInUser, accessToken, refreshToken},
+        "User Loggedin successfully"
+    ))
+
+})
+
+export {registerUser, loginUser}
