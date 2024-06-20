@@ -5,6 +5,11 @@ import {ApiResponse} from '../utils/ApiResponse.js'
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from 'jsonwebtoken'
 import mongoose from "mongoose";
+import dotenv from 'dotenv'
+
+dotenv.config({
+    path:"./.env"
+})
 
 const getAccessAndRefreshToken = async (userId)=>{
     const user = await User.findById(userId);
@@ -140,4 +145,56 @@ const logOutUser = asyncHandler(async(req,res)=>{
     ))
 
 })
-export {registerUser, loginUser, logOutUser}
+
+const refreshAccessToken = asyncHandler(async(req,res)=>{
+    //console.log(req.cookies);
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    console.log(incomingRefreshToken);
+
+    if(!incomingRefreshToken){
+        throw new ApiError(404, "Unauthorized request")
+    }
+
+    // if(!decodedToken){
+    //     throw new ApiError(404,"Token decoding failed")
+    // }
+    console.log("enviroment variable :",process.env.REFRESH_TOKEN_SECRET);
+    try {
+        const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+        console.log("decoded token",decodedToken);
+        const user = await User.findById(decodedToken?._id)
+        // console.log(user);
+        if(!user){
+            throw new ApiError(401,"User not available")
+        }
+        // console.log(user);
+        console.log((incomingRefreshToken !==user?.refreshToken));
+        if(incomingRefreshToken !==user?.refreshToken){
+            throw new ApiError(401, "Invalid refresh Token");
+        };
+
+        const options = {
+            httpOnly : true,
+            secure : false
+        }
+        
+        const {accessToken,newRefreshToken} = await getAccessAndRefreshToken(user._id)
+
+        return res
+        .status(200)
+        .cookie("accessToken", accessToken,options)
+        .cookie("refreshToken", newRefreshToken, options)
+        .json(new ApiResponse(
+            200,
+            {accessToken, refreshToken:newRefreshToken},
+            "AccessToken Refeshed successfully"
+        ))
+
+    } catch (error) {
+        throw new ApiError(500, error?.message)
+    }
+})
+
+
+
+export {registerUser, loginUser, logOutUser, refreshAccessToken}
