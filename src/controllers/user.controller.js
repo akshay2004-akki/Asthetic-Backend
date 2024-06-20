@@ -4,7 +4,7 @@ import {ApiError} from '../utils/ApiError.js'
 import {ApiResponse} from '../utils/ApiResponse.js'
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from 'jsonwebtoken'
-import mongoose, {isValidObjectId} from "mongoose";
+import mongoose from "mongoose";
 import dotenv from 'dotenv'
 import { isValidObjectId } from "mongoose";
 
