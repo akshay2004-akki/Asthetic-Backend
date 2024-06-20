@@ -6,6 +6,17 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from 'jsonwebtoken'
 import mongoose from "mongoose";
 
+const getAccessAndRefreshToken = async (userId)=>{
+    const user = await User.findById(userId);
+
+    if(!user){
+        throw new ApiError(404, "User does not exist")
+    }
+
+    const refreshToken = user.getRefreshToken();
+    const accessToken  = user.getAccessToken();
+}
+
 const registerUser = asyncHandler(async(req,res)=>{
     const {username, email, fullname, password, role} = req.body;
     if (
@@ -14,7 +25,7 @@ const registerUser = asyncHandler(async(req,res)=>{
         throw new ApiError(400, "All fields are required")
     }
 
-    const existerUser = User.findOne({
+    const existerUser = await User.findOne({
         $or : [{username}, {email}]
     })
 
@@ -42,4 +53,19 @@ const registerUser = asyncHandler(async(req,res)=>{
         role
     })
 
+
+    const createdUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    )
+
+    if (!createdUser) {
+        throw new ApiError(500, "Something went wrong while registering the user")
+    }
+
+    return res.status(201).json(
+        new ApiResponse(200, createdUser, "User registered Successfully")
+    )
+
 })
+
+export {registerUser}

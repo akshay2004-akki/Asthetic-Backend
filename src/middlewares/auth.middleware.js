@@ -4,7 +4,9 @@ import jwt from "jsonwebtoken"
 import { User } from "../models/user.model.js";
 import dotenv from 'dotenv'
 
-dotenv.config()
+dotenv.config({
+    path:'./.env'
+})
 
 export const verifyJWT = asyncHandler(async(req, _, next) => {
     try {

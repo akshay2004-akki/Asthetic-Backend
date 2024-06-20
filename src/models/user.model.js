@@ -3,7 +3,9 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 
-dotenv.config()
+dotenv.config({
+    path:"./.env"
+})
 
 const userSchema = new Schema({
     username : {
@@ -36,7 +38,7 @@ const userSchema = new Schema({
     },
     role : {
         type : String,
-        enum : ['admin', 'aesthetic_nurse', 'doctor', 'clinic_manager', 'receptionist'],// enum ensures that the value stored in that field must be one of the values specified in the enum array. This is particularly useful for fields that should only accept certain specific values, like user roles, categories, statuses, etc.
+        enum : ['admin', 'aesthetic_nurse', 'doctor', 'clinic_manager', 'receptionist', 'patient'],// enum ensures that the value stored in that field must be one of the values specified in the enum array. This is particularly useful for fields that should only accept certain specific values, like user roles, categories, statuses, etc.
         required : true
     },
     permissions : {
@@ -45,7 +47,13 @@ const userSchema = new Schema({
     }
 },{timestamps:true})
 
-userSchema.pre('save', function(next){
+userSchema.pre('save', async function(next){
+
+    //password encryption
+    if(!this.isModified("password")) return next();
+    this.password = await bcrypt.hash(this.password,10);
+
+
     if(this.role==='admin'){
         this.permissions=['manage_users', 'manage_roles', 'view_all_records', 'system_settings']
     }else if(this.role==='aesthetic_nurse' || this.role==='doctor'){
@@ -54,16 +62,15 @@ userSchema.pre('save', function(next){
         this.permissions = ['view_clinic_records', 'manage_staff_schedules', 'oversee_appointments', 'access_reports', 'handle_billing']
     }else if(this.role==='receptionist'){
         this.permissions = ['book_manage_appointments', 'send_reminders', 'access_basic_patient_info', 'handle_checkins_payments']
+    }else if (this.role === 'patient') {
+        this.permissions = ['view_own_records', 'book_appointments', 'update_personal_info', 'view_prescriptions']; // Added permissions for 'patient'
     }
     next()
 })
 
-userSchema.pre('save', async function(next){
-    if(!this.isModified("password")) return next();
-
-    this.password = bcrypt.hash(this.password,10);
-    next()
-})
+// userSchema.pre("save", async function(next){
+    
+// })
 
 userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(password, this.password);
