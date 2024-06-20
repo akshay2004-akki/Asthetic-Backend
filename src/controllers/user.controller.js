@@ -4,8 +4,9 @@ import {ApiError} from '../utils/ApiError.js'
 import {ApiResponse} from '../utils/ApiResponse.js'
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from 'jsonwebtoken'
-import mongoose from "mongoose";
+import mongoose, {isValidObjectId} from "mongoose";
 import dotenv from 'dotenv'
+import { isValidObjectId } from "mongoose";
 
 dotenv.config({
     path:"./.env"
@@ -197,12 +198,37 @@ const refreshAccessToken = asyncHandler(async(req,res)=>{
 
 const changeCurrentPassword = asyncHandler(async(req,res)=>{
     const {oldPassword, newPassword} = req.body;
+    const userId = req.user?._id
 
     if(!oldPassword || !newPassword){
         throw new ApiError(400, "Both Old and New Password is required")
     }
 
-    
+    if(!isValidObjectId(userId) || !userId){
+        throw new ApiError(404,"Inavlid User Id")
+    }
+
+    const user = await User.findById(userId);
+    if(!user){
+        throw new ApiError(404,"User does not exist");
+    }
+
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+    if(!isPasswordCorrect){
+        throw new ApiError(409,"Incorrect password")
+    }
+
+    user.password = newPassword;
+    user.save({validateBeforeSave:false})
+
+    return res
+    .status(200)
+    .json(new ApiResponse(
+        200,
+        {},
+        "password changes successfully"
+    ))
 
 })
 
