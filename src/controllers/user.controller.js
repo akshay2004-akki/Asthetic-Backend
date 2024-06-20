@@ -195,6 +195,17 @@ const refreshAccessToken = asyncHandler(async(req,res)=>{
     }
 })
 
+const changeCurrentPassword = asyncHandler(async(req,res)=>{
+    const {oldPassword, newPassword} = req.body;
+
+    if(!oldPassword || !newPassword){
+        throw new ApiError(400, "Both Old and New Password is required")
+    }
+
+    
+
+})
 
 
-export {registerUser, loginUser, logOutUser, refreshAccessToken}
+
+export {registerUser, loginUser, logOutUser, refreshAccessToken, changeCurrentPassword}
