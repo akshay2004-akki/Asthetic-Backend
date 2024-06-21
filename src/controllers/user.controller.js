@@ -275,6 +275,31 @@ const getUserDetails = asyncHandler(async(req,res)=>{
     ))
 })
 
+const getPermissionByRole = asyncHandler(async(req,res)=>{
+    const userId = req.user?._id;
+    
+    if(!isValidObjectId(userId)){
+        throw new ApiError(400,"Invalid User Id")
+    }
+
+    const user = await User.findById(userId);
+
+    if(!user){
+        throw new ApiError(405,"User not found")
+    }
+
+    const permissions = user.permissions
+
+    return res
+    .status(200)
+    .json(new ApiResponse(
+        200,
+        permissions,
+        "permissions fetched successfully"
+    ))
+
+})
 
 
-export {registerUser, loginUser, logOutUser, refreshAccessToken, changeCurrentPassword, updateUserDetails, getUserDetails}
+
+export {registerUser, loginUser, logOutUser, refreshAccessToken, changeCurrentPassword, updateUserDetails, getUserDetails, getPermissionByRole}
