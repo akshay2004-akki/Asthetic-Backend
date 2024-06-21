@@ -232,6 +232,49 @@ const changeCurrentPassword = asyncHandler(async(req,res)=>{
 
 })
 
+const updateUserDetails = asyncHandler(async(req,res)=>{
+    const userId = req.user?._id
+    const {fullname, email} = req.body;
+
+    if(!isValidObjectId(userId)){
+        throw new ApiError(404,"Invalid User id")
+    }
+    if(!fullname || !email){
+        throw new ApiError(404,"Both Fullname and Email are required")
+    }
+
+    const user = await User.findByIdAndUpdate(userId,{
+        $set : {
+            fullname,
+            email
+        }
+    }, {new : true}).select("-password")
+
+    return res
+    .status(200)
+    .json(new ApiResponse(
+        200,
+        user,
+        "User details updated successfully"
+    ))
+})
+
+const getUserDetails = asyncHandler(async(req,res)=>{
+    const user = await User.findById(req.user?._id).select("-password -refreshToken");
+
+    if(!user){
+        throw new ApiError(404,"User not found");
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(
+        200,
+        user,
+        "User fetched successfully"
+    ))
+})
 
 
-export {registerUser, loginUser, logOutUser, refreshAccessToken, changeCurrentPassword}
+
+export {registerUser, loginUser, logOutUser, refreshAccessToken, changeCurrentPassword, updateUserDetails, getUserDetails}
