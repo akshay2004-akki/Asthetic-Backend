@@ -50,6 +50,19 @@ const manageRoles = asyncHandler(async (req, res) => {
 
 const viewAllRecords = asyncHandler(async (req, res) => {
     // TODO: Implement logic to view all records (e.g., retrieve all user records)
+    try {
+        const user = await User.find().select("-password -refreshToken");
+        return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            user,
+            "Users fetched successfully"
+        ))
+    } catch (error) {
+        throw new ApiError(500,error?.message)
+    }
+
     
 });
 
