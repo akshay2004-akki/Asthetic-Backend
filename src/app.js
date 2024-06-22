@@ -15,7 +15,9 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 import userRouter from './routes/user.routes.js'
+import permissionRouter from './routes/permissions.routes.js'
 
 app.use("/api/v2/users", userRouter)
+app.use("/api/v2/permissions", permissionRouter)
 
 export default app

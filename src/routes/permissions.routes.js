@@ -48,3 +48,5 @@ router.post('/handle-checkins-payments', handleCheckinsPayments);
 router.post('/book-appointments', bookAppointments);
 router.post('/update-personal-info', updatePersonalInfo);
 router.get('/view-prescriptions', viewPrescriptions);
+
+export default router
