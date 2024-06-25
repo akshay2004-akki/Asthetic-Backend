@@ -61,9 +61,9 @@ export const registerUser = asyncHandler(async (req, res, next) => {
         avatar : avatar?.url
     });
     generateToken(createdUser, "User Registrated Successfully!", 200, res);
-    return res.status(201).json(
-        new ApiResponse(200, createdUser, "User registered Successfully")
-    )
+    // return res.status(201).json(
+    //     new ApiResponse(200, createdUser, "User registered Successfully")
+    // )
 });
 
 const loginUser = asyncHandler(async(req,res)=>{
