@@ -1,13 +1,4 @@
-import mongoose from "mongoose";
-import validator from "validator";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-// create doctor model
-// validate the email
-// passoword hashing (bcrypt)
-// compare passowrd
-// generate jwt 
-
+import mongoose, { Schema } from 'mongoose';
 
 const doctorSchema = new mongoose.Schema({
     firstName: {
@@ -115,22 +106,4 @@ const doctorSchema = new mongoose.Schema({
 },
     { timestamps: true });
 
-doctorSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) {
-        next();
-    }
-    this.password = await bcrypt.hash(this.password, 10);
-    next();
-});
-
-doctorSchema.methods.comparePassword = async function (password) {
-    return await bcrypt.compare(password, this.password)
-}
-doctorSchema.methods.generateJsonWebToken = function () {
-    return jwt.sign({ id: this._id }, process.env.JWT_SECRET_KEY, {
-        expiresIn: process.env.JWT_EXPIRES,
-    });
-};
-
-
-export const Doctor = mongoose.model("Doctor", doctorSchema);
+export const Doctor = mongoose.model('Doctor', doctorSchema);
