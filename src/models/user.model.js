@@ -1,113 +1,90 @@
-import mongoose, {Schema} from 'mongoose'
-import jwt from 'jsonwebtoken'
-import bcrypt from 'bcrypt'
-import dotenv from 'dotenv'
-
-dotenv.config({
-    path:"./.env"
-})
-
-const userSchema = new Schema({
-    username : {
-        type : String,
-        required : true,
-        unique : true,
-        lowercase : true,
-        trim : true,
-        index : true
-    },
-    email : {
-        type : String,
-        required : true,
-        unique:true
-    },
-    avatar : {
-        type : String,
-        required : true
-    },
-    fullname : {
-        type : String,
-        required : true,
-    },
-    password : {
-        type : String,
-        required:[true, "password is required"],
-    },
-    refreshToken : {
-        type : String,
-    },
-    role : {
-        type : String,
-        enum : ['admin', 'aesthetic_nurse', 'doctor', 'clinic_manager', 'receptionist', 'patient'],// enum ensures that the value stored in that field must be one of the values specified in the enum array. This is particularly useful for fields that should only accept certain specific values, like user roles, categories, statuses, etc.
-        required : true
-    },
-    permissions : {
-        type : [String],
-        default : []
-    }
-},{timestamps:true})
-
-userSchema.pre('save', async function(next){
-
-    //password encryption
-    if(!this.isModified("password")) return next();
-    this.password = await bcrypt.hash(this.password,10);
+import mongoose from "mongoose";
+import validator from "validator";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+// create user model (firstName, lastName, email, phone, nic, dob, gender, password)
+// validate the email
+// passoword hashing (bcrypt)
+// compare passowrd
+// generate jwt 
 
 
-    if(this.role==='admin'){
-        this.permissions=['manage_users', 'manage_roles', 'view_all_records', 'system_settings']
-    }else if(this.role==='aesthetic_nurse' || this.role==='doctor'){
-        this.permissions = ['view_own_records', 'create_update_treatment_notes', 'access_patient_history', 'manage_prescriptions']
-    }else if(this.role==='clinic_manager'){
-        this.permissions = ['view_clinic_records', 'manage_staff_schedules', 'oversee_appointments', 'access_reports', 'handle_billing']
-    }else if(this.role==='receptionist'){
-        this.permissions = ['book_manage_appointments', 'send_reminders', 'access_basic_patient_info', 'handle_checkins_payments']
-    }else if (this.role === 'patient') {
-        this.permissions = ['view_own_records', 'book_appointments', 'update_personal_info', 'view_prescriptions']; // Added permissions for 'patient'
-    }
-    next()
-})
-
-// userSchema.pre("save", async function(next){
-    
-// })
-
-userSchema.methods.isPasswordCorrect = async function(password){
-    return await bcrypt.compare(password, this.password);
-}
-userSchema.methods.getAccessToken = function () {
-    const token = jwt.sign(
-        {
-            _id: this._id,
-            email: this.email,
-            username: this.username,
-            fullname: this.fullname,
-            role : this.role,
-            permissions : this.permissions
+const userSchema = new mongoose.Schema(
+    {
+        firstName: {
+            type: String,
+            required: [true, "First Name is required"],
+            minLength: [3, "First Name contaians at least 3 characters"],
         },
-        process.env.ACCESS_TOKEN_SECRET,
-        {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
-        }
-    );
-    console.log("Generated Access Token:", token);
-    return token;
-}
-
-userSchema.methods.getRefreshToken = function () {
-    const token = jwt.sign(
-        {
-            _id: this._id,
+        lastName: {
+            type: String,
+            required: [true, "Last Name is required"],
+            minLength: [3, "Last Name contaians at least 3 characters"],
         },
-        process.env.REFRESH_TOKEN_SECRET,
-        {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
-        }
-    );
-    console.log("Generated Refresh Token:", token);
-    return token;
+        email: {
+            type: String,
+            required: [true, "Email is required!"],
+            validate: [validator.isEmail, "Email is invalid"]
+        },
+        phone: {
+            type: String,
+            required: [true, "Phone is required"],
+            minLength: [10, "Phone Number must contains exactly 10 digits"],
+            maxLength: [10, "Phone Number must contains exactly 10 digits"],
+
+        },
+        address: {
+            city: {
+                type: String,
+                // required: true
+            },
+            country: {
+                type: String,
+                // required: true
+            }
+        },
+        password: {
+            type: String,
+            required: true,
+            minLength: [8, "Password must contain at least 8 characters"],
+            select: false,
+        },
+        dob: {
+            type: Date,
+            required: [true, "DOB Is Required!"],
+        },
+        gender: {
+            type: String,
+            required: [true, "Gender Is Required!"],
+            enum: ["Male", "Female"],
+        },
+        role: {
+            type: String,
+            required: true,
+            enum: ["Admin", "Patient", "Doctor"]
+        },
+    },
+    { timestamps: true }
+);
+
+
+userSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) {
+        next();
+    }
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+});
+
+userSchema.methods.comparePassword = async function (password) {
+    return await bcrypt.compare(password, this.password)
 }
 
+userSchema.methods.generateJsonWebToken = function () {
+    return jwt.sign({ id: this._id }, process.env.JWT_SECRET_KEY, {
+        expiresIn: process.env.JWT_EXPIRES,
+    });
+};
 
 
-export const User = mongoose.model("User", userSchema) 
+export const User = mongoose.model("User", userSchema); 
