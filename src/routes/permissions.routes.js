@@ -3,7 +3,7 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { getPermissionByRole } from "../controllers/user.controller.js";
 import {manageUsers,
     manageRoles,
-    viewAllRecords,
+    viewStaffRecords,
     systemSettings,
     viewOwnRecords,
     createUpdateTreatmentNotes,
@@ -30,7 +30,7 @@ router.route("/", getPermissionByRole);
 
 router.post('/manage-users', manageUsers);
 router.post('/manage-roles', manageRoles);
-router.get('/view-all-records', viewAllRecords);
+router.get('/view-all-records', viewStaffRecords);
 router.post('/system-settings', systemSettings);
 router.get('/view-own-records', viewOwnRecords);
 router.post('/create-update-treatment-notes', createUpdateTreatmentNotes);

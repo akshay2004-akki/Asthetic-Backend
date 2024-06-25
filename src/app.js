@@ -15,9 +15,10 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 import userRouter from './routes/user.routes.js'
-import permissionRouter from './routes/permissions.routes.js'
+import adminRouter from './routes/admin.routes.js'
+import { verifyJWT } from './middlewares/auth.middleware.js';
 
 app.use("/api/v2/users", userRouter)
-app.use("/api/v2/permissions", permissionRouter)
+app.use("/api/v2/admin", verifyJWT,adminRouter)
 
 export default app
