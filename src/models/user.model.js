@@ -61,8 +61,7 @@ const userSchema = new Schema({
         enum: ["Admin", "Patient", "Doctor"]
     },
 },
-{ timestamps: true }
-);
+{ timestamps: true });
 
 userSchema.pre('save', async function(next){
 
