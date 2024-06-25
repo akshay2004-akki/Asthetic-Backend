@@ -44,7 +44,7 @@ export const registerUser = asyncHandler(async (req, res, next) => {
         throw new ApiError(400, `${existedUser.role} with this Email already Registered`);
     }
 
-    const avatarLocalPath = req.file?.avatar[0].path
+    const avatarLocalPath = req.files?.avatar[0].path
     const avatar = await uploadOnCloudinary(avatarLocalPath)
 
     // finally create the user

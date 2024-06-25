@@ -19,6 +19,6 @@ import adminRouter from './routes/admin.routes.js'
 import { verifyJWT } from './middlewares/auth.middleware.js';
 
 app.use("/api/v2/users", userRouter)
-app.use("/api/v2/admin", verifyJWT,adminRouter)
+//app.use("/api/v2/admin", verifyJWT,adminRouter)
 
 export default app
