@@ -1,110 +1,68 @@
-import asyncHandler from "../utils/asyncHandler.js";
+import asyncHandler from "../utilis/asyncHandler.js";
+import { ApiError } from "../utilis/ApiError.js";
 import { Doctor } from "../models/doctor.model.js";
-import { User } from "../models/user.model.js";
-import { ApiResponse } from '../utils/ApiResponse.js';
-import { ApiError } from '../utils/ApiError.js';
+import { generateToken } from "../utilis/jwtToken.js";
+import { ApiResponse } from "../utilis/ApiResponse.js";
+import { uploadOnCloudinary } from "../utilis/cloudinary.js"
 
-// Create a new doctor
-const createDoctor = asyncHandler(async (req, res) => {
-    const userId = req.user?._id
-    const { specialization, contactInfo } = req.body;
 
-    // Validate input
-    if (!userId || !specialization || !contactInfo) {
-        throw new ApiError(400, "UserId, specialization, and contactInfo are required");
+//! Adding a new doctor by admin only
+export const addNewDoctor = asyncHandler(async (req, res, next) => {
+    // taking the info from the admin
+    const { firstName, lastName, email, phone, password, address, gender, department, specializations, qualifications, experience, availabelSlots, languagesKnown, appointmentCharges } = req.body;
+
+    // checking the info provided by the admin
+    if (!firstName || !lastName || !email || !phone || !password || !address || !gender || !department || !specializations || !qualifications || !experience || !availabelSlots || !languagesKnown || !appointmentCharges) {
+        throw new ApiError(400, "Please Fill Full Form!");
+    }
+    console.log(req.body);
+    // check if the doctor already exists
+    let existedDoctor = await Doctor.findOne({ email });
+    if (existedDoctor) {
+        throw new ApiError(400, `${existedDoctor.role} with this Email already Registered`);
     }
 
-    // Check if the user exists
-    const user = await User.findById(userId);
-    if (!user) {
-        throw new ApiError(404, "User not found");
+    // docAvatar
+    const docAvatarLocalPath = req.file?.path;
+
+    if (!docAvatarLocalPath) {
+        throw new ApiError(400, "Doctor Avatar Path Not Found!");
     }
 
-    // Create the doctor
-    const doctor = await Doctor.create({
-        user: userId,
-        specialization,
-        contactInfo
+    const avatar = await uploadOnCloudinary(docAvatarLocalPath);
+    if (!avatar) {
+        throw new ApiError(400, "Doctor Avatar is required")
+    }
+
+    // finally create the user
+    const createdDoctor = await Doctor.create({
+        firstName,
+        lastName,
+        email,
+        phone,
+        password,
+        address,
+        gender,
+        department,
+        specializations,
+        qualifications,
+        experience,
+        availabelSlots,
+        languagesKnown,
+        appointmentCharges,
+        role: "Doctor",
+        docAvatar: avatar.url,
     });
-
-    return res.status(201).json(
-        new ApiResponse(200, doctor, "Doctor created successfully")
-    );
+    generateToken(createdDoctor, "Dcotor Added Successfully!", 200, res);
 });
 
-// Get all doctors
-const getAllDoctors = asyncHandler(async (req, res) => {
-    const doctors = await Doctor.find().populate('user', '-password -refreshToken');
-    return res.status(200).json(
-        new ApiResponse(200, doctors, "Doctors fetched successfully")
-    );
+
+//! Getting all doctors by user
+export const getAllDoctors = asyncHandler(async (req, res, next) => {
+    const doctors = await Doctor.find({ role: "Doctor" });
+
+    res
+        .status(200)
+        .json(new ApiResponse(200, doctors, " DOCTORS LIST"));
 });
 
-// Get doctor by ID
-const getDoctorById = asyncHandler(async (req, res) => {
-    const doctorId = req.params.id;
-
-    // Validate ID
-    if (!mongoose.isValidObjectId(doctorId)) {
-        throw new ApiError(400, "Invalid doctor ID");
-    }
-
-    const doctor = await Doctor.findById(doctorId).populate('user', '-password -refreshToken');
-
-    if (!doctor) {
-        throw new ApiError(404, "Doctor not found");
-    }
-
-    return res.status(200).json(
-        new ApiResponse(200, doctor, "Doctor fetched successfully")
-    );
-});
-
-// Update doctor details
-const updateDoctor = asyncHandler(async (req, res) => {
-    const doctorId = req.params.id;
-    const { specialization, contactInfo } = req.body;
-
-    // Validate ID
-    if (!mongoose.isValidObjectId(doctorId)) {
-        throw new ApiError(400, "Invalid doctor ID");
-    }
-
-    // Find and update doctor
-    let doctor = await Doctor.findById(doctorId);
-
-    if (!doctor) {
-        throw new ApiError(404, "Doctor not found");
-    }
-
-    doctor.specialization = specialization;
-    doctor.contactInfo = contactInfo;
-    await doctor.save();
-
-    return res.status(200).json(
-        new ApiResponse(200, doctor, "Doctor updated successfully")
-    );
-});
-
-// Delete doctor
-const deleteDoctor = asyncHandler(async (req, res) => {
-    const doctorId = req.params.id;
-
-    // Validate ID
-    if (!mongoose.isValidObjectId(doctorId)) {
-        throw new ApiError(400, "Invalid doctor ID");
-    }
-
-    // Find and delete doctor
-    const doctor = await Doctor.findByIdAndDelete(doctorId);
-
-    if (!doctor) {
-        throw new ApiError(404, "Doctor not found");
-    }
-
-    return res.status(200).json(
-        new ApiResponse(200, {}, "Doctor deleted successfully")
-    );
-});
-
-export { createDoctor, getAllDoctors, getDoctorById, updateDoctor, deleteDoctor };
