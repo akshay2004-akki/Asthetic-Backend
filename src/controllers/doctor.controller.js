@@ -24,7 +24,7 @@ export const addNewDoctor = asyncHandler(async (req, res, next) => {
 
     // docAvatar
     const docAvatarLocalPath = req.file?.path;
-
+ 
     if (!docAvatarLocalPath) {
         throw new ApiError(400, "Doctor Avatar Path Not Found!");
     }

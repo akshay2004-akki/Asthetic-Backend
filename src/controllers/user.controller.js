@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken'
 import mongoose from "mongoose";
 import dotenv from 'dotenv'
 import { isValidObjectId } from "mongoose";
+import {generateToken} from '../utils/generateToken.js'
 
 dotenv.config({
     path:"./.env"
@@ -28,56 +29,42 @@ const getAccessAndRefreshToken = async (userId)=>{
     return {accessToken, refreshToken}
 }
 
-const registerUser = asyncHandler(async(req,res)=>{
-    const {username, email, fullname, password, role} = req.body;
-    if (
-        [fullname, email, username, password].some((field) => field?.trim() === "")
-    ) {
-        throw new ApiError(400, "All fields are required")
+export const registerUser = asyncHandler(async (req, res, next) => {
+    // taking the info from the user
+    const { firstName, lastName, email, phone, address, dob, gender, password } = req.body;
+
+    // checking the info provided by the user
+    if (!firstName || !lastName || !email || !phone || !address || !dob || !gender || !password) {
+        throw new ApiError(400, "Please Fill Full Form!");
     }
 
-    const existerUser = await User.findOne({
-        $or : [{username}, {email}]
-    })
-
-    if(existerUser){
-        throw new ApiError(404, "User Already exist with same email and username");
-    }
-    console.log("req.files : ", req.files);
-
-    const avatarLocalPath = req.files?.avatar[0].path;
-    if(!avatarLocalPath){
-        throw new ApiError(404, "Avatar file required")
+    // check if the user already exists
+    let existedUser = await User.findOne({ email });
+    if (existedUser) {
+        throw new ApiError(400, `${existedUser.role} with this Email already Registered`);
     }
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath);
-    if(!avatar){
-        throw new ApiError(409,"Error while uploading on cloudinary")
-    }
+    const avatarLocalPath = req.file?.avatar[0].path
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
 
-    const user = await User.create({
-        username,
+    // finally create the user
+    const createdUser = await User.create({
+        firstName,
+        lastName,
         email,
-        fullname,
-        avatar : avatar.url,
+        phone,
+        address,
+        dob,
+        gender,
         password,
-        role
-    })
-
-
-    const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
-    )
-
-    if (!createdUser) {
-        throw new ApiError(500, "Something went wrong while registering the user")
-    }
-
+        role: "Patient",
+        avatar : avatar?.url
+    });
+    generateToken(createdUser, "User Registrated Successfully!", 200, res);
     return res.status(201).json(
         new ApiResponse(200, createdUser, "User registered Successfully")
     )
-
-})
+});
 
 const loginUser = asyncHandler(async(req,res)=>{
     const {email, username, password} = req.body;
@@ -302,4 +289,4 @@ const getPermissionByRole = asyncHandler(async(req,res)=>{
 
 
 
-export {registerUser, loginUser, logOutUser, refreshAccessToken, changeCurrentPassword, updateUserDetails, getUserDetails, getPermissionByRole}
+export { loginUser, logOutUser, refreshAccessToken, changeCurrentPassword, updateUserDetails, getUserDetails, getPermissionByRole}

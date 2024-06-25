@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
 
 dotenv.config({
-    path:"./.env"
+    path:"./.env" 
 })
 
 const userSchema = new Schema({
@@ -21,7 +21,7 @@ const userSchema = new Schema({
     email: {
         type: String,
         required: [true, "Email is required!"],
-        validate: [validator.isEmail, "Email is invalid"]
+        // validate: [validator.isEmail, "Email is invalid"]
     },
     phone: {
         type: String,
@@ -54,6 +54,10 @@ const userSchema = new Schema({
         type: String,
         required: [true, "Gender Is Required!"],
         enum: ["Male", "Female"],
+    },
+    avatar : {
+        type : String,
+        //required : true
     },
     role: {
         type: String,

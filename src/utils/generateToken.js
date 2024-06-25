@@ -1,7 +1,7 @@
-import { ApiResponse } from "../utilis/ApiResponse.js";
+import { ApiResponse } from "./ApiResponse.js";
 
 export const generateToken = (user, message, statusCode, res) => {
-    const token = user.generateJsonWebToken();
+    const token = user.getAccessToken();
 
     // Determine the cookie name based on the user's role
     let cookieName;
@@ -18,11 +18,11 @@ export const generateToken = (user, message, statusCode, res) => {
     res
         .status(statusCode)
         .cookie(cookieName, token, {
-            expires: new Date(
+            expiresIn: new Date(
                 Date.now() + process.env.ACCESS_TOKEN_EXPIRY * 24 * 60 * 60 * 1000
             ),
             httpOnly: true,
-            secure: true,
+            secure: false,
             sameSite: "None"
         })
         .json(new ApiResponse(statusCode, {
