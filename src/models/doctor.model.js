@@ -106,4 +106,21 @@ const doctorSchema = new mongoose.Schema({
 },
     { timestamps: true });
 
+    doctorSchema.pre("save", async function (next) {
+        if (!this.isModified("password")) {
+            next();
+        }
+        this.password = await bcrypt.hash(this.password, 10);
+        next();
+    });
+    
+    doctorSchema.methods.comparePassword = async function (password) {
+        return await bcrypt.compare(password, this.password)
+    }
+    doctorSchema.methods.generateJsonWebToken = function () {
+        return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN_SECRET, {
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+        });
+    };
+
 export const Doctor = mongoose.model('Doctor', doctorSchema);
