@@ -76,3 +76,14 @@ export const deleteAppointment = asyncHandler(async(req,res)=>{
     }
     
 })
+
+export const getAllAppointments = asyncHandler(async(req,res)=>{
+    const appointments = await Appointment.find();
+
+    if(!appointments){
+        throw new ApiError(500,"No Appointments found")
+    }
+
+    return res.status(200).json(new ApiResponse(200,appointments,"Appointments fetched"))
+
+})
