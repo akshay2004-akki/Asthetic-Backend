@@ -50,6 +50,13 @@ export const updateAppointmentStatus = asyncHandler(async(req,res)=>{
     if (!appointment) {
         throw new ApiError(404, "Appointment not found");
     }
-    
+
+    appointment = await Appointment.findOneAndUpdate(id, req.body,{
+        new : true,
+        runValidators : true,
+        useFindAndModify : false
+    })
+
+    return res.status(200).json(new ApiResponse(200,appointment,"Appointment Status Updated!"))
 
 })
