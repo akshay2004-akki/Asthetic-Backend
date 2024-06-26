@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import dotenv from 'dotenv'
 import { isValidObjectId } from "mongoose";
 import {generateToken} from '../utils/generateToken.js'
+import { Appointment } from "../models/appointment.model.js";
 
 dotenv.config({
     path:"./.env"
@@ -90,6 +91,66 @@ export const getDoctorDetails = asyncHandler(async (req,res)=>{
     }
 
     return res.status(200).json(new ApiResponse(200, user, `${user.role} details`))
+})
+
+export const getUserAppointmentInfo = asyncHandler(async(req,res)=>{
+    const {appointmentId} = req.params;
+    try {
+
+        const appointment = await Appointment.aggregate([
+            {
+                $match : {_id : new mongoose.Types.ObjectId(appointmentId)}
+            },
+            {
+                $lookup : {
+                    from : "User",
+                    localField : "patient",
+                    foreignField : "_id",
+                    as : "patientDetails"
+                }
+            },
+            {$unwind : "$patientDetails"},
+            {
+                $lookup : {
+                    from : "Doctor",
+                    localField : "doctor",
+                    foreignField : "_id",
+                    as : "doctorDetails"
+                }
+            },
+            {$unwind : "$doctorDetails"},
+            {
+                $project: {
+                    _id: 1,
+                    appointmentDate: 1,
+                    status: 1,
+                    city: 1,
+                    pincode: 1,
+                    department: 1,
+                    'patientDetails.firstName': 1,
+                    'patientDetails.lastName': 1,
+                    'patientDetails.email': 1,
+                    'patientDetails.phone': 1,
+                    'doctorDetails.firstName': 1,
+                    'doctorDetails.lastName': 1,
+                    'doctorDetails.email': 1,
+                    'doctorDetails.phone': 1,
+                    'doctorDetails.department': 1,
+                    'doctorDetails.specializations': 1,
+                    'doctorDetails.experience': 1
+                }
+            }
+        ])
+
+        if(appointment.length===0){
+            throw new ApiError(500,"Appointment Not Found")
+        }
+
+        return res.status(200).json(new ApiResponse(200,appointment,"Appointmrnt fetched successfully"))
+        
+    } catch (error) {
+        throw new ApiError(500,error?.message)
+    }
 })
 
 
