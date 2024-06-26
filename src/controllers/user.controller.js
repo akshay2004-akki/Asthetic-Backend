@@ -82,5 +82,15 @@ export const getUserDetails = asyncHandler(async(req,res)=>{
     ))
 })
 
+export const getDoctorDetails = asyncHandler(async (req,res)=>{
+    const user = req.doctor;
+
+    if(!user){
+        throw new ApiError(500,"User does not exist")
+    }
+
+    return res.status(200).json(new ApiResponse(200, user, `${user.role} details`))
+})
+
 
 
