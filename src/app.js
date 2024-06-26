@@ -16,7 +16,6 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 import userRouter from './routes/user.routes.js'
-import adminRouter from './routes/admin.routes.js'
 import { verifyJWT } from './middlewares/auth.middleware.js';
 
 app.use("/api/v2/users", userRouter)

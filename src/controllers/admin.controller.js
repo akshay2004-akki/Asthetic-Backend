@@ -27,3 +27,4 @@ export const addNewAdmin = asyncHandler(async(req,res)=>{
     })
     generateToken(createdAdmin,"Admin Added Successfully!",200,res)
 })
+
