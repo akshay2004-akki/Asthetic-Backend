@@ -1,7 +1,7 @@
 import { ApiResponse } from "./ApiResponse.js";
 
 export const generateToken = (user, message, statusCode, res) => {
-    const token = user.getAccessToken();
+    const token = user.generateJsonWebToken();
 
     // Determine the cookie name based on the user's role
     let cookieName;

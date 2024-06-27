@@ -8,12 +8,12 @@ export const login = asyncHandler(async(req,res)=>{
     const {email, password, role} = req.body
     
     if(!email || !password || !role) {
-        throw new ApiError("Please Fill Full Form!", 400);
+        throw new ApiError(400, "Please Fill Full Form!");
     }
 
     let user
     if(role==="Patient" || role==="Admin"){
-        user = await User.findOne({email}).select("+password") 
+        user = await User.findOne({$and : [{email}, {role}]}).select("+password") 
     }else if(role==="Doctor"){
         user = await Doctor.findOne({email}).select("+password")
     }
@@ -35,7 +35,7 @@ export const logoutAdmin = asyncHandler(async (req, res) => {
         .cookie("adminToken", "", {
             expires: new Date(Date.now()),
             httpOnly: true,
-            secure: false,
+            secure: true,
             sameSite: "None"
         })
         .json({

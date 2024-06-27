@@ -128,6 +128,12 @@ userSchema.methods.getRefreshToken = function () {
     return token;
 }
 
+userSchema.methods.generateJsonWebToken = function(){
+    return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+    });
+}
+
 
 
 export const User = mongoose.model("User", userSchema) 
