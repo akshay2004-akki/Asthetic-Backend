@@ -12,22 +12,6 @@ dotenv.config({
     path:"./.env"
 })
 
-const getAccessAndRefreshToken = async (userId)=>{
-    const user = await User.findById(userId);
-
-    if(!user){
-        throw new ApiError(404, "User does not exist")
-    }
-
-    const refreshToken = await user.getRefreshToken();
-    const accessToken  = await user.getAccessToken();
-
-    user.refreshToken = refreshToken;
-    await user.save({validateBeforeSave:false})
-
-    return {accessToken, refreshToken}
-}
-
 export const registerUser = asyncHandler(async (req, res, next) => {
     // taking the info from the user
     const { firstName, lastName, email, phone, address, dob, gender, password } = req.body;

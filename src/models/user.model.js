@@ -2,6 +2,7 @@ import mongoose, {Schema} from 'mongoose'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import dotenv from 'dotenv'
+import validator from 'validator'
 
 dotenv.config({
     path:"./.env" 
@@ -21,7 +22,7 @@ const userSchema = new Schema({
     email: {
         type: String,
         required: [true, "Email is required!"],
-        // validate: [validator.isEmail, "Email is invalid"]
+        validate: [validator.isEmail, "Email is invalid"]
     },
     phone: {
         type: String,
