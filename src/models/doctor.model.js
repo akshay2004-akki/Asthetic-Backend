@@ -14,7 +14,7 @@ const doctorSchema = new mongoose.Schema({
     email: {
         type: String,
         required: [true, "Email is required!"],
-        validate: [validator.isEmail, "Email is invalid"]
+        // validate: [validator.isEmail, "Email is invalid"]
     },
     phone: {
         type: String,

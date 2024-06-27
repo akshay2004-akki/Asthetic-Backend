@@ -1,8 +1,8 @@
-import asyncHandler from "../utilis/asyncHandler.js";
-import { ApiError } from "../utilis/ApiError.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { Doctor } from "../models/doctor.model.js"
-import { generateToken } from "../utilis/jwtToken.js";
+import { generateToken } from "../utils/generateToken.js";
 
 export const login = asyncHandler(async(req,res)=>{
     const {email, password, role} = req.body
@@ -41,5 +41,37 @@ export const logoutAdmin = asyncHandler(async (req, res) => {
         .json({
             success: true,
             message: "Admin logged out Successfully"
+        });
+})
+
+export const logoutPatient = asyncHandler(async (req, res, next) => {
+    res
+        .status(200)
+        .cookie("patientToken", "", {
+            expires: new Date(Date.now()),
+            httpOnly: true,
+            secure: true,
+            sameSite: "None"
+        })
+        .json({
+            success: true,
+            message: "User logged out Successfully"
+        });
+})
+
+
+//! Logout Doctor
+export const logoutDoctor = asyncHandler(async (req, res, next) => {
+    res
+        .status(200)
+        .cookie("doctorToken", "", {
+            expires: new Date(Date.now()),
+            httpOnly: true,
+            secure: true,
+            sameSite: "None"
+        })
+        .json({
+            success: true,
+            message: "User logged out Successfully"
         });
 })
