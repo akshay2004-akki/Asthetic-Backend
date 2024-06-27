@@ -46,7 +46,7 @@ export const isDoctorAuthenticated = asyncHandler(async(req,res,next)=>{
     }
 
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    req.user = await User.findById(decoded.id)
+    req.user = await Doctor.findById(decoded.id)
 
     if (req.user.role !== "Doctor") {
         throw new ApiError(403, `${req.user.role} not authorized for this resource!`)
