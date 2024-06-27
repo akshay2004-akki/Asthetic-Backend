@@ -19,7 +19,7 @@ router.route("/patient/register").post(upload.fields([
 
 
 router.post("/login", login);
-router.post("/admin/addnew", isAdminAuthenticated, addNewAdmin);
+router.post("/admin/addnew",isAdminAuthenticated, addNewAdmin);
 router.post("/doctor/addnew", isAdminAuthenticated, upload.single("docAvatar"), addNewDoctor);
 router.get("/alldoctors", getAllDoctors);
 router.get("/admin/me", isAdminAuthenticated, getUserDetails);

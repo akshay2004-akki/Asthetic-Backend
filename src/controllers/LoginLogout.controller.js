@@ -13,7 +13,7 @@ export const login = asyncHandler(async(req,res)=>{
 
     let user
     if(role==="Patient" || role==="Admin"){
-        user = await User.findOne({$and : [{email}, {role}]}).select("+password") 
+        user = await User.findOne({email}).select("+password") 
     }else if(role==="Doctor"){
         user = await Doctor.findOne({email}).select("+password")
     }
