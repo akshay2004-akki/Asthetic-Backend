@@ -1,6 +1,6 @@
-import asyncHandler from "../utilis/asyncHandler.js";
-import { ApiError } from "../utilis/ApiError.js";
-import { ApiResponse } from "../utilis/ApiResponse.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 import { Appointment } from "../models/appointment.model.js";
 
 export const bookAppointment = asyncHandler(async(req,res)=>{
