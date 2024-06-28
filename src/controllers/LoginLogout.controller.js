@@ -24,7 +24,7 @@ export const login = asyncHandler(async(req,res)=>{
 
     const isPasswordCorrect = await user.isPasswordCorrect(password)
     if(!isPasswordCorrect){
-        throw new ApiError("Invalid email or password", 400);
+        throw new ApiError(400,"Invalid email or password");
     }
     generateToken(user,"User LoggedIn Successfully",200,res)
 })

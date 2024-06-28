@@ -1,5 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import validator from 'validator';
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
 
 const doctorSchema = new mongoose.Schema({
     firstName: {
@@ -89,7 +91,7 @@ const doctorSchema = new mongoose.Schema({
     },
     docAvatar: {
         type: String, // cloudinary url
-        required: true,
+        // required: true,
     },
     role: {
         type: String,
